@@ -16,7 +16,6 @@ class Card:
         elif self.status == "blocked":
             raise ValueError("A blocked card cannot be activated.")
 
-
     def block(self):
         if self.status == "active":
             self.status = "blocked"
@@ -24,3 +23,6 @@ class Card:
             raise ValueError("The new card must be activated first.")
         elif self.status == "blocked":
             raise ValueError("The card is already blocked.")
+        else:
+            raise ValueError("Invalid card status.")
+
