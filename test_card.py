@@ -1,6 +1,6 @@
 import unittest
 from card import Card
-from card_repository import app, card_repo
+from app import app, card_repo
 from flask_testing import TestCase
 
 
@@ -11,7 +11,7 @@ class CardTestCase(unittest.TestCase):
         self.cvv = "123"
         self.issue_date = "01/20"
         self.owner_id = "123456789"
-        self.status = "active"
+        self.status = "new"
         self.card = Card(self.pan, self.expiry_date, self.cvv, self.issue_date, self.owner_id, self.status)
 
     def test_card_attributes(self):
@@ -21,6 +21,35 @@ class CardTestCase(unittest.TestCase):
         self.assertEqual(self.card.issue_date, self.issue_date)
         self.assertEqual(self.card.owner_id, self.owner_id)
         self.assertEqual(self.card.status, self.status)
+
+    def test_activate_card(self):
+        self.card.activate()
+        self.assertEqual(self.card.status, "active")
+
+    def test_activate_blocked_card(self):
+        self.card.status = "blocked"
+        with self.assertRaises(ValueError):
+            self.card.activate()
+
+    def test_activate_already_active_card(self):
+        self.card.status = "active"
+        with self.assertRaises(ValueError):
+            self.card.activate()
+
+    def test_block_card(self):
+        self.card.status = "active"
+        self.card.block()
+        self.assertEqual(self.card.status, "blocked")
+
+    def test_block_new_card(self):
+        self.card.status = "new"
+        with self.assertRaises(ValueError):
+            self.card.block()
+
+    def test_block_already_blocked_card(self):
+        self.card.status = "blocked"
+        with self.assertRaises(ValueError):
+            self.card.block()
 
 
 class CardAppTestCase(TestCase):
@@ -34,7 +63,7 @@ class CardAppTestCase(TestCase):
         card_repo.close()
 
     def test_create_card(self):
-        response = self.client.get('/cards?pan=1234567890123456&expiry_date=12/25&cvv=123&issue_date=01/20&owner_id=123456789&status=active')
+        response = self.client.get('/cards?pan=1234567890123456&expiry_date=12/25&cvv=123&issue_date=01/20&owner_id=123456789&status=new')
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Card created with ID:", response.data)
 
